@@ -1,0 +1,149 @@
+// Esquema de la base de datos de Mintly
+// Base de datos: PostgreSQL en Supabase
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+// Estado físico de una carta, de mejor a peor
+enum CardCondition {
+  MINT
+  NEAR_MINT
+  EXCELLENT
+  GOOD
+  PLAYED
+  POOR
+}
+
+enum MatchStatus {
+  PENDING
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// Cuenta
+// ─────────────────────────────────────────────
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  elo          Int      @default(1000)
+  createdAt    DateTime @default(now())
+
+  collection  CollectionItem[]
+  matchesAsP1 Match[]          @relation("Player1")
+  matchesAsP2 Match[]          @relation("Player2")
+  matchesWon  Match[]          @relation("Winner")
+}
+
+// ─────────────────────────────────────────────
+// Colección
+// ─────────────────────────────────────────────
+
+// Catálogo de cartas: una fila por carta distinta que existe
+model Card {
+  id             Int       @id @default(autoincrement())
+  externalId     String    @unique
+  name           String
+  setName        String
+  number         String
+  rarity         String?
+  imageUrl       String?
+  marketPrice    Decimal?  @db.Decimal(10, 2)
+  priceUpdatedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  collectionItems CollectionItem[]
+  offers          Offer[]
+
+  @@index([name])
+}
+
+// Carta que tiene un usuario en su colección
+model CollectionItem {
+  id        Int           @id @default(autoincrement())
+  userId    Int
+  cardId    Int
+  quantity  Int           @default(1)
+  condition CardCondition @default(NEAR_MINT)
+  addedAt   DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, cardId, condition])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Mercado (modelo B2B con tiendas asociadas)
+// ─────────────────────────────────────────────
+
+model Shop {
+  id             Int      @id @default(autoincrement())
+  name           String
+  city           String
+  address        String?
+  website        String?
+  email          String?
+  commissionRate Decimal  @default(0.05) @db.Decimal(4, 3)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  offers Offer[]
+}
+
+// Carta que vende una tienda asociada
+model Offer {
+  id        Int           @id @default(autoincrement())
+  shopId    Int
+  cardId    Int
+  price     Decimal       @db.Decimal(10, 2)
+  condition CardCondition @default(NEAR_MINT)
+  stock     Int           @default(1)
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Restrict)
+
+  @@index([cardId])
+  @@index([shopId])
+}
+
+// ─────────────────────────────────────────────
+// Competitivo
+// ─────────────────────────────────────────────
+
+model Match {
+  id         Int         @id @default(autoincrement())
+  player1Id  Int
+  player2Id  Int
+  winnerId   Int?
+  status     MatchStatus @default(PENDING)
+  eloChange  Int?
+  createdAt  DateTime    @default(now())
+  finishedAt DateTime?
+
+  player1 User  @relation("Player1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2 User  @relation("Player2", fields: [player2Id], references: [id], onDelete: Cascade)
+  winner  User? @relation("Winner", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  @@index([player1Id])
+  @@index([player2Id])
+}

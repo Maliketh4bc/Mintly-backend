@@ -28,3 +28,14 @@ export async function updateUser(id: number, data: { email?: string; username?: 
 export async function deleteUser(id: number) {
   return prisma.user.delete({ where: { id } });
 }
+
+export async function createUser(email: string, username: string, passwordHash: string) {
+  return prisma.user.create({
+    data: { email, username, passwordHash },
+    select: userSelect,
+  });
+}
+
+export async function findUserByEmail(email: string) {
+  return prisma.user.findUnique({ where: { email } });
+}

@@ -22,6 +22,24 @@ La API arranca en `http://localhost:3000`. Para comprobar que funciona: `http://
 | `npm run build` | Compila a `dist/` |
 | `npm start` | Ejecuta la versión compilada |
 
+## Base de datos
+
+La base de datos es PostgreSQL en Supabase y se gestiona con Prisma. El esquema está en `prisma/schema.prisma` y las migraciones, en `prisma/migrations`.
+
+Para crear todas las tablas en una base de datos vacía:
+
+```bash
+npx prisma migrate deploy
+```
+
+Para modificar el esquema durante el desarrollo, se cambia `schema.prisma` y se crea una migración nueva:
+
+```bash
+npx prisma migrate dev --name descripcion_del_cambio
+```
+
+La migración `0_init` se marcó como ya aplicada en Supabase, porque las tablas se crearon antes de usar migraciones.
+
 ## Versiones
 
 | Herramienta | Versión |

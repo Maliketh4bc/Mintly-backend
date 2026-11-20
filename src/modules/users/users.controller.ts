@@ -28,6 +28,23 @@ export async function getUserCtrl(req: Request, res: Response) {
   }
 }
 
+export async function meCtrl(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    const user = await findUserById(req.user.sub);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export async function updateUserCtrl(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);

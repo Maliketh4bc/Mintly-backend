@@ -6,10 +6,10 @@ import { listUsersCtrl, getUserCtrl, meCtrl, updateUserCtrl, deleteUserCtrl } fr
 
 const router = Router();
 
-router.get('/', listUsersCtrl);
+router.get('/', auth, listUsersCtrl);
 router.get('/me', auth, meCtrl);
-router.get('/:id', getUserCtrl);
-router.patch('/:id', validate(updateUserSchema), updateUserCtrl);
-router.delete('/:id', deleteUserCtrl);
+router.get('/:id', auth, getUserCtrl);
+router.patch('/:id', auth, validate(updateUserSchema), updateUserCtrl);
+router.delete('/:id', auth, deleteUserCtrl);
 
 export default router;

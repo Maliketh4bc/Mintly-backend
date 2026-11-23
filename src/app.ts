@@ -6,6 +6,8 @@ import { errorHandler } from './middleware/error.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import usersRoutes from './modules/users/users.routes.js';
 import cardsRoutes from './modules/cards/cards.routes.js';
+import collectionRoutes from './modules/collection/collection.routes.js';
+
 
 const app = express();
 
@@ -19,6 +21,8 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/cards', cardsRoutes);
+app.use('/api/collection', collectionRoutes);
+
 
 app.use(errorHandler);
 

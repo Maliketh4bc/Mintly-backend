@@ -1,6 +1,6 @@
 import { prisma } from '../../config/db.js';
 
-const cardSelect = {
+export const cardSelect = {
     id: true,
     externalId: true,
     name: true,
